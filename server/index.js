@@ -1,34 +1,35 @@
-const express=require('express')
-const cors=require('cors')
-const {connect}=require('mongoose')
-require('dotenv').config()
-const upload=require('express-fileupload')
 
-const userRoutes=require('./routes/userRoutes')
-const postRoutes=require('./routes/postRoutes')
-const {notFound, errorHandler} = require('./middleware/errorMiddleware')
+import express from "express";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import cors from "cors";
 
-const app = express()
+dotenv.config();
 
-app.use(cors()) // CORS လိုအပ်ရင် ထည့်ပေးပါ
-app.use(express.json({extended: true}))
-app.use(express.urlencoded({extended: true}))
-app.use(upload())
-app.use('/uploads', express.static(__dirname + '/uploads'))
+const app = express();
 
-// 1. Routes များကို အပေါ်ဘက်တွင် အရင်ချိတ်ဆက်ပါ
-app.use('/api/users', userRoutes)
-app.use('/api/posts', postRoutes)
+// Middleware
+app.use(cors());
+app.use(express.json());
 
-// 2. Not Found Middleware ကို Routes တွေရဲ့ အောက်မှာ ထားပါ
-app.use(notFound)
-
-// 3. Error Handler Middleware များကို အနောက်ဆုံးတွင် ထားပါ
-app.use(errorHandler)
-
-// Server စတင်ရန်နှင့် Database ချိတ်ဆက်ရန်
-connect(process.env.MONGO_URL)
+// MongoDB Connection
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => {
-      app.listen(process.env.PORT || 5000, () => console.log("Server running on port " + (process.env.PORT || 5000)))
+    console.log("MongoDB connected successfully");
   })
-  .catch(error => console.log(error))
+  .catch((error) => {
+    console.error("MongoDB connection error:", error.message);
+  });
+
+// Test Route
+app.get("/", (req, res) => {
+  res.send("MERN Blog API is running!");
+});
+
+// Server
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
